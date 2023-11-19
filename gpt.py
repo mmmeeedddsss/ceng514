@@ -18,18 +18,22 @@ Please only output the SQL query that could fetch the information user asked for
 class OpenAIWrapper:
     @staticmethod
     def generate_sql_for_promt(database_name, database_tables, user_prompt):
+        """
         print(prompt.format(database_name=database_name,
                             database_tables=database_tables,
                             user_prompt=user_prompt))
+        """
 
-        response = client.chat.completions.create(model="gpt-3.5-turbo",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are an SQL developer translating user prompts to SQL queries.",
-            },
-            {"role": "user", "content": prompt.format(database_name=database_name,
-                                                      database_tables=database_tables,
-                                                      user_prompt=user_prompt)},
-        ])
-        return response["choices"][0]["message"]["content"]
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an SQL developer translating user prompts to SQL queries.",
+                },
+                {"role": "user", "content": prompt.format(database_name=database_name,
+                                                          database_tables=database_tables,
+                                                          user_prompt=user_prompt)},
+            ])
+
+        return response.choices[0].message.content
