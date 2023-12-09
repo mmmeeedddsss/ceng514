@@ -194,3 +194,4 @@ __pycache__
 
 *.desc
 spider/dataset/database/*
+spider/evaluator

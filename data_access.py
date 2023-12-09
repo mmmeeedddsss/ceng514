@@ -57,3 +57,9 @@ class SpiderDataset:
             s += ')'
             s += '\n'
         return s
+
+    @cached_property
+    def training_queries(self):
+        with open('spider/dataset/train_spider.json') as f:
+            queries = json.load(f)
+        return queries  # has question, db_id, query
