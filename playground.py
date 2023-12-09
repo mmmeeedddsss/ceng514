@@ -9,6 +9,12 @@ from predictor import Predictor
 random.seed(41)
 
 """
+queries = Predictor().sample_dataset(10)
+print(OpenAIWrapper.translate_to_turkish(user_promt_list=[q['question'] for q in queries]))
+"""
+
+
+"""
 dataset = SpiderDataset()
 print(OpenAIWrapper.generate_sql_for_promt(
     database_name='concert_singer',
@@ -17,11 +23,17 @@ print(OpenAIWrapper.generate_sql_for_promt(
 )
 """
 
-
-p = Predictor()
+"""
+p = Predictor(use_turkish=True)
 p.predict(10)
+print('*** evaluating for turkish ***')
 p.evaluate()
+"""
 
+p = Predictor(use_turkish=False)
+p.predict(10)
+print('*** evaluating for english ***')
+p.evaluate()
 
 """
 
