@@ -3,9 +3,11 @@ import random
 import subprocess
 from tqdm import tqdm
 
+from utils import SimilarityCalculator
 from data_access import SpiderDataset
 from gpt import OpenAIWrapper
 from translation_helper import TranslationHelper
+
 
 
 class Predictor:
@@ -20,6 +22,7 @@ class Predictor:
 
     def predict(self, num_samples=100):
         sampled_queries = self.sample_dataset(num_samples=num_samples)
+        similarity_calc = SimilarityCalculator(self.dataset.training_queries)
 
         if self.use_turkish:
             sampled_queries = TranslationHelper.translate_prompts_to_turkish(sampled_queries)
@@ -28,11 +31,20 @@ class Predictor:
         for example in tqdm(sampled_queries):
             db_id = example['db_id']
             question = example['question']
+            """
+            print(f"HERERE {question}")
+            if self.use_turkish:
+                question = OpenAIWrapper.translate_to_english(question)
+                print(question)
+            exit
+            """
 
+            similar_items = similarity_calc.sentence_vector(question, 8)
             predicted_query = OpenAIWrapper.generate_sql_for_promt(
                 database_name=db_id,
                 database_tables=self.dataset.format_tables_short(db_id),
-                user_prompt=question
+                user_prompt=question,
+                similar_items=similar_items
             )
 
             # Remove multiple whitespaces and newlines

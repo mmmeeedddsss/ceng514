@@ -1,7 +1,6 @@
 import json
 
 from data_access import SpiderDataset
-from gpt import OpenAIWrapper
 import random
 
 from predictor import Predictor
@@ -13,6 +12,17 @@ queries = Predictor().sample_dataset(10)
 print(OpenAIWrapper.translate_to_turkish(user_promt_list=[q['question'] for q in queries]))
 """
 
+
+"""
+
+queries = Predictor().sample_dataset(10)
+user_promt_list = [(q['query'], q['question']) for q in queries]
+for query, question in user_promt_list[:10]:
+    print(f"Question: \n {question.strip()}")
+    print()
+    print(f"Query: \n {query.strip()}")
+exit()
+"""
 
 """
 dataset = SpiderDataset()
@@ -31,7 +41,7 @@ p.evaluate()
 """
 
 p = Predictor(use_turkish=False)
-p.predict(10)
+p.predict(100)
 print('*** evaluating for english ***')
 p.evaluate()
 
