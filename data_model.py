@@ -14,7 +14,9 @@ class Column:
         self.original_name = original_name
         self.data_type = data_type
         self.is_primary_key = is_primary_key
-        self.foreign_key_of = foreign_key_of
+        self.foreign_keys = []
+        if foreign_key_of:
+            self.foreign_keys.append(foreign_key_of)
         self.table: Table = None
 
 

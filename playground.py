@@ -5,7 +5,7 @@ import random
 
 from predictor import Predictor
 
-random.seed(43)
+random.seed(41)
 
 """
 queries = Predictor().sample_dataset(10)

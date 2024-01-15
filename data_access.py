@@ -52,7 +52,7 @@ class SpiderDataset:
                                 if k2 == i:
                                     continue
                                 current_column = columns_by_index[i]
-                                current_column.foreign_key_of = ForeignKey(table=columns_by_index[k2].table, column=columns_by_index[k2])
+                                current_column.foreign_keys.append(ForeignKey(table=columns_by_index[k2].table, column=columns_by_index[k2]))
 
             databases[db_id] = Database(name=db_id, tables=tables)
 
@@ -83,20 +83,21 @@ class SpiderDataset:
                 if filter_by_columns is not None and column.name not in filter_by_columns:
                     continue
 
-                if column.foreign_key_of:
-                    lhs = f"{column.table.name}.{column.name}"
-                    rhs = f"{column.foreign_key_of.table.name}.{column.foreign_key_of.column.name}"
+                if len(column.foreign_keys) > 0:
+                    for fk in column.foreign_keys:
+                        lhs = f"{column.table.name}.{column.name}"
+                        rhs = f"{fk.table.name}.{fk.column.name}"
 
-                    if filter_by_tables is not None and column.foreign_key_of.table.name not in filter_by_tables:
-                        continue
+                        if filter_by_tables is not None and fk.table.name not in filter_by_tables:
+                            continue
 
-                    if filter_by_columns is not None and column.foreign_key_of.column.name not in filter_by_columns:
-                        continue
+                        if filter_by_columns is not None and fk.column.name not in filter_by_columns:
+                            continue
 
 
-                    if rhs > lhs:
-                        s += f'{lhs} = {rhs}'
-                        s += '\n'
+                        if rhs > lhs:
+                            s += f'{lhs} = {rhs}'
+                            s += '\n'
         return s
 
     @cached_property

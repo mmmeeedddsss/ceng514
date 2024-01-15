@@ -133,6 +133,7 @@ Let's begin:
 Here are your sentences to translate:
 """
 
+
 generate_sql_prompt = """
 You are given an example list of question in plain English and SQL query correspondence. 
 
@@ -147,8 +148,6 @@ Question:
 Query:
 
 """
-
-
 
 MODEL = 'gpt-4'  # "gpt-4"  # "gpt-3.5-turbo"
 

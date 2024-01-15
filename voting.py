@@ -7,10 +7,12 @@ import mmh3
 def vote_for_most_common_execution(database_name, predicted_queries):
     hash_to_query = {}
     hash_counts = {}
+    errors = 0
     for query in predicted_queries:
         try:
             result = sqlite_executor.execute(database_name, query)
         except:
+            errors += 1
             continue
         hash_result = mmh3.hash(str(result))
         hash_to_query[hash_result] = query
@@ -20,7 +22,7 @@ def vote_for_most_common_execution(database_name, predicted_queries):
 
     try:
         most_common_hash = max(hash_counts, key=hash_counts.get)
-        print(f'Winner vote count: {hash_counts[most_common_hash]}/{len(predicted_queries)}')
+        print(f'Winner vote count: {hash_counts[most_common_hash]}/{len(predicted_queries)-errors}')
         return hash_to_query[most_common_hash]
     except: # Meaning all queries given is incorrect
         print("All given queries were incorrect!")
@@ -34,7 +36,7 @@ def vote_for_common_tables(related_tables_multi):
             parsed_related_tables = json.loads(related_tables)
         except:
             continue
-        for table in parsed_related_tables[:4]:
+        for table in list(set(parsed_related_tables[:4])):
             if table not in voted_tables:
                 voted_tables[table] = 0
             voted_tables[table] += 1
@@ -61,7 +63,7 @@ def vote_for_common_columns(related_columns_multi):
         for table, columns in parsed_related_columns.items():
             if table not in voted_columns_by_table:
                 voted_columns_by_table[table] = {}
-            for column in columns[:4]:
+            for column in list(set(columns[:4])):
                 if column not in voted_columns_by_table[table]:
                     voted_columns_by_table[table][column] = 0
                 voted_columns_by_table[table][column] += 1
