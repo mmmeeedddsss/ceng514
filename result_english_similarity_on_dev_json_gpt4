@@ -1,0 +1,86 @@
+On downloading model...
+On encode
+easy pred: SELECT other_student_details FROM Students ORDER BY last_name DESC
+easy gold: SELECT other_student_details FROM Students ORDER BY other_student_details DESC 
+
+extra pred: SELECT DISTINCT T2.Name FROM country AS T1 JOIN city AS T2 ON T2.CountryCode = T1.Code WHERE T1.Continent = 'Europe' AND T1.Code NOT IN ( SELECT T3.Code FROM country AS T3 JOIN countrylanguage AS T4 ON T3.Code = T4.CountryCode WHERE T4.IsOfficial = 'T' AND T4.Language = 'English')
+extra gold: SELECT DISTINCT T2.Name FROM country AS T1 JOIN city AS T2 ON T2.CountryCode  =  T1.Code WHERE T1.Continent  =  'Europe' AND T1.Name NOT IN (SELECT T3.Name FROM country AS T3 JOIN countrylanguage AS T4 ON T3.Code  =  T4.CountryCode WHERE T4.IsOfficial  =  'T' AND T4.Language  =  'English') 
+
+extra pred: SELECT T1.Name FROM country AS T1 JOIN countrylanguage AS T2 ON T1.Code = T2.CountryCode GROUP BY T1.Name ORDER BY COUNT(DISTINCT T2.Language) DESC LIMIT 1
+extra gold: SELECT T1.Name FROM country AS T1 JOIN countrylanguage AS T2 ON T1.Code  =  T2.CountryCode GROUP BY T1.Name ORDER BY COUNT(*) DESC LIMIT 1 
+
+medium pred: SELECT T2.concert_name, T2.theme, count(*) FROM singer_in_concert AS T1 JOIN concert AS T2 ON T1.concert_id = T2.concert_id GROUP BY T2.concert_id, T2.concert_name, T2.theme
+medium gold: SELECT T2.concert_name ,  T2.theme ,  count(*) FROM singer_in_concert AS T1 JOIN concert AS T2 ON T1.concert_id  =  T2.concert_id GROUP BY T2.concert_id 
+
+extra pred: SELECT T1.Continent FROM country AS T1 JOIN countrylanguage AS T2 ON T1.Code = T2.CountryCode GROUP BY T1.Continent ORDER BY COUNT(DISTINCT T2.Language) DESC LIMIT 1
+extra gold: SELECT T1.Continent FROM country AS T1 JOIN countrylanguage AS T2 ON T1.Code  =  T2.CountryCode GROUP BY T1.Continent ORDER BY COUNT(*) DESC LIMIT 1 
+
+hard pred: SELECT Language FROM countrylanguage GROUP BY Language ORDER BY COUNT(DISTINCT CountryCode) DESC LIMIT 1
+hard gold: SELECT LANGUAGE FROM countrylanguage GROUP BY LANGUAGE ORDER BY count(*) DESC LIMIT 1 
+
+medium pred: SELECT T1.FullName , count(*) FROM CAR_MAKERS AS T1 JOIN MODEL_LIST AS T2 ON T1.Id = T2.Maker GROUP BY T1.FullName;
+medium gold: select count(*) ,  t2.fullname from model_list as t1 join car_makers as t2 on t1.maker  =  t2.id group by t2.id; 
+
+medium pred: SELECT T2.name, count(*) FROM concert AS T1 JOIN stadium AS T2 ON T1.stadium_id = T2.stadium_id GROUP BY T2.name
+medium gold: SELECT T2.name ,  count(*) FROM concert AS T1 JOIN stadium AS T2 ON T1.stadium_id  =  T2.stadium_id GROUP BY T1.stadium_id 
+
+extra pred: SELECT name, result, bulgarian_commander FROM battle WHERE id NOT IN ( SELECT lost_in_battle FROM ship WHERE location = 'English Channel' );
+extra gold: SELECT name ,  RESULT ,  bulgarian_commander FROM battle EXCEPT SELECT T1.name ,  T1.result ,  T1.bulgarian_commander FROM battle AS T1 JOIN ship AS T2 ON T1.id  =  T2.lost_in_battle WHERE T2.location  =  'English Channel' 
+
+hard pred: SELECT T2.Name FROM course as T1 JOIN teacher as T2 ON T1.Course_ID = T2.Teacher_ID WHERE T1.Course = "Math"
+hard gold: SELECT T3.Name FROM course_arrange AS T1 JOIN course AS T2 ON T1.Course_ID  =  T2.Course_ID JOIN teacher AS T3 ON T1.Teacher_ID  =  T3.Teacher_ID WHERE T2.Course  =  "Math" 
+
+extra pred: SELECT T1.last_name FROM Owners AS T1 JOIN Dogs AS T2 ON T1.owner_id = T2.owner_id WHERE T2.age = ( SELECT min(age) FROM Dogs )
+extra gold: SELECT T1.last_name FROM Owners AS T1 JOIN Dogs AS T2 ON T1.owner_id  =  T2.owner_id WHERE T2.age  =  ( SELECT max(age) FROM Dogs ) 
+
+medium pred: SELECT avg(Edispl) FROM cars_data AS T1 JOIN car_names AS T2 ON T1.Id = T2.MakeId WHERE T2.Make = 'volvo';
+medium gold: SELECT avg(T2.edispl) FROM CAR_NAMES AS T1 JOIN CARS_DATA AS T2 ON T1.MakeId  =  T2.Id WHERE T1.Model  =  'volvo'; 
+
+medium pred: SELECT T2.transcript_date , T1.transcript_id FROM Transcript_Contents AS T1 JOIN Transcripts AS T2 ON T1.transcript_id = T2.transcript_id GROUP BY T1.transcript_id HAVING count(T1.student_course_id) >= 2
+medium gold: SELECT T2.transcript_date ,  T1.transcript_id FROM Transcript_Contents AS T1 JOIN Transcripts AS T2 ON T1.transcript_id  =  T2.transcript_id GROUP BY T1.transcript_id HAVING count(*)  >=  2 
+
+hard pred: SELECT Model FROM car_names GROUP BY Model ORDER BY count(DISTINCT Make) DESC LIMIT 1;
+hard gold: SELECT Model FROM CAR_NAMES GROUP BY Model ORDER BY count(*) DESC LIMIT 1; 
+
+                     easy                 medium               hard                 extra                all                 
+count                25                   44                   15                   16                   100                 
+=====================   EXECUTION ACCURACY     =====================
+execution            0.960                0.932                0.933                0.875                0.930               
+
+====================== EXACT MATCHING ACCURACY =====================
+exact match          0.960                0.886                0.800                0.688                0.860               
+
+---------------------PARTIAL MATCHING ACCURACY----------------------
+select               1.000                1.000                1.000                1.000                1.000               
+select(no AGG)       1.000                1.000                1.000                1.000                1.000               
+where                1.000                0.917                1.000                0.700                0.909               
+where(no OP)         1.000                0.917                1.000                0.800                0.932               
+group(no Having)     1.000                0.833                1.000                1.000                0.897               
+group                1.000                0.778                1.000                1.000                0.862               
+order                0.500                1.000                0.600                0.714                0.800               
+and/or               1.000                1.000                1.000                1.000                1.000               
+IUEN                 0.000                0.000                1.000                1.000                1.000               
+keywords             1.000                1.000                1.000                0.938                0.989               
+---------------------- PARTIAL MATCHING RECALL ----------------------
+select               1.000                1.000                1.000                1.000                1.000               
+select(no AGG)       1.000                1.000                1.000                1.000                1.000               
+where                1.000                0.917                1.000                0.778                0.930               
+where(no OP)         1.000                0.917                1.000                0.889                0.953               
+group(no Having)     1.000                0.833                1.000                1.000                0.897               
+group                1.000                0.778                1.000                1.000                0.862               
+order                0.500                1.000                0.600                0.714                0.800               
+and/or               1.000                1.000                1.000                1.000                1.000               
+IUEN                 0.000                0.000                1.000                0.750                0.833               
+keywords             1.000                1.000                1.000                0.938                0.989               
+---------------------- PARTIAL MATCHING F1 --------------------------
+select               1.000                1.000                1.000                1.000                1.000               
+select(no AGG)       1.000                1.000                1.000                1.000                1.000               
+where                1.000                0.917                1.000                0.737                0.920               
+where(no OP)         1.000                0.917                1.000                0.842                0.943               
+group(no Having)     1.000                0.833                1.000                1.000                0.897               
+group                1.000                0.778                1.000                1.000                0.862               
+order                0.500                1.000                0.600                0.714                0.800               
+and/or               1.000                1.000                1.000                1.000                1.000               
+IUEN                 1.000                1.000                1.000                0.857                0.909               
+keywords             1.000                1.000                1.000                0.938                0.989               
+*** evaluating for english ***
