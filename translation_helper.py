@@ -1,4 +1,5 @@
 from gpt import OpenAIWrapper
+from tqdm import tqdm
 
 
 class TranslationHelper:
@@ -16,10 +17,11 @@ class TranslationHelper:
         chunks_of_prompts = list(TranslationHelper._chunks(prompts, TranslationHelper.REQUEST_CHUNK_SIZE))
 
         dataset = dataset.copy()
-        for chunk_no, chunk in enumerate(chunks_of_prompts):
+        for chunk_no, chunk in tqdm(enumerate(chunks_of_prompts), total=len(chunks_of_prompts)):
             translated_prompts = OpenAIWrapper.translate_to_turkish(chunk).split('\n')
 
             for prompt_no, translated_prompt in enumerate(translated_prompts):
+                # print(translated_prompt)
                 first_dot = translated_prompt.find('.')
 
                 prompt_index_in_dataset = chunk_no * TranslationHelper.REQUEST_CHUNK_SIZE + prompt_no

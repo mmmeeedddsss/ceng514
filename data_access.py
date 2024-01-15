@@ -17,13 +17,13 @@ class SpiderDataset:
             tables = {}
 
             original_table_names = raw_db['table_names_original']
-            table_names = raw_db['table_names']
+            table_names = raw_db['table_names_original']
 
             for table_name in zip(table_names, original_table_names):
                 table = Table(name=table_name[0], original_name=table_name[1], columns=[])
                 tables[table.name] = table
 
-            column_names = raw_db['column_names']
+            column_names = raw_db['column_names_original']
             original_column_names = raw_db['column_names_original']
             column_types = raw_db['column_types']
             foreign_keys = raw_db['foreign_keys']

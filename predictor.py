@@ -1,6 +1,7 @@
 import json
 import random
 import subprocess
+from tqdm import tqdm
 
 from data_access import SpiderDataset
 from gpt import OpenAIWrapper
@@ -12,21 +13,19 @@ class Predictor:
         self.dataset = SpiderDataset()
         self.use_turkish = use_turkish
 
-    def sample_dataset(self, num_samples=10):
+    def sample_dataset(self, num_samples=100):
         sampled_queries = random.sample(self.dataset.training_queries, num_samples)
         self.save_truths_for_eval(sampled_queries)
         return sampled_queries
 
-    def predict(self, num_samples=10):
+    def predict(self, num_samples=100):
         sampled_queries = self.sample_dataset(num_samples=num_samples)
-        self.save_truths_for_eval(sampled_queries)
 
         if self.use_turkish:
             sampled_queries = TranslationHelper.translate_prompts_to_turkish(sampled_queries)
 
         predicted_queries = []
-        for example in sampled_queries:
-            truth_query = example['query']
+        for example in tqdm(sampled_queries):
             db_id = example['db_id']
             question = example['question']
 
@@ -37,7 +36,7 @@ class Predictor:
             )
 
             # Remove multiple whitespaces and newlines
-            predicted_query = 'SELECT ' + ' '.join(predicted_query.replace('\n', ' ').split())
+            predicted_query = ' '.join(predicted_query.replace('\n', ' ').split())
             predicted_queries.append(predicted_query)
 
         self.save_preds_for_eval(predicted_queries)
