@@ -3,23 +3,19 @@ from openai import OpenAI
 client = OpenAI()
 
 generate_sql_prompt = """
-You are given a database to query and a user prompt. Write a SQL query that answers the user's question.
+You are given an example list of question in plain English and SQL query correspondence. 
 
-Keypoints you need to follow:
-- Try not to use "IN", "OR", and "LEFT JOIN" keywords in your query.
-- Only output the SQL query that fetch the information user asked for inside the database, do not output the results or comment on the SQL you generated.
-- If the user prompt contains a specific name in Turkish, translate it to English too (Such as 'ABD' -> 'USA').
-- Only use table columns mentioned in database schema, don't use any other columns. Also, only fetch the information user asks for from the set of defined column names. 
+{similar_questions}
 
-In the light of the keypoints above, you are given the following information about the database schema and the user prompt:
-Name of the database you will work is {database_name}. Here is the tables in the database with column names:
+Use the database schemas given below to construct your SQL schemas.
 {database_tables}
 
-The user prompt is given in Turkish, but you should write the SQL query in English. Here is the user prompt:
+Produce an SQL query given the following user question.
+Question:
 {user_prompt}
+Query:
 
-Here is the SQL query you should write:
-SELECT"""
+"""
 
 translate_prompt = """
 You are given ten sentences in English and is asked to translate them to Turkish.
@@ -45,13 +41,20 @@ Here are your sentences to translate:
 
 class OpenAIWrapper:
     @staticmethod
-    def generate_sql_for_promt(database_name, database_tables, user_prompt):
+    def generate_sql_for_promt(database_name, database_tables, user_prompt, similar_items=[]):
+        similar_questions = []
+        if similar_items:
+            similar_questions = [f"Question:\n{q[1]} \nQuery:\n{q[2]}\n" for q in similar_items]
+
+        """
         print(generate_sql_prompt.format(database_name=database_name,
                                          database_tables=database_tables,
-                                         user_prompt=user_prompt))
+                                         user_prompt=user_prompt,
+                                         similar_questions="\n".join(similar_questions))),
+        """
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4-32k",
             messages=[
                 {
                     "role": "system",
@@ -59,7 +62,8 @@ class OpenAIWrapper:
                 },
                 {"role": "user", "content": generate_sql_prompt.format(database_name=database_name,
                                                                        database_tables=database_tables,
-                                                                       user_prompt=user_prompt)},
+                                                                       user_prompt=user_prompt,
+                                                                       similar_questions="\n".join(similar_questions))},
             ])
 
         return response.choices[0].message.content
@@ -76,6 +80,22 @@ class OpenAIWrapper:
                 {
                     "role": "system",
                     "content": "You are a translator, translating English sentences to Turkish.",
+                },
+                {"role": "user", "content": prompt},
+            ])
+
+        return response.choices[0].message.content
+
+    @staticmethod
+    def translate_to_english(question):
+        prompt = question
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a translator, translating Turksish sentences to English.",
                 },
                 {"role": "user", "content": prompt},
             ])
