@@ -20,7 +20,7 @@ class SpiderDataset:
             table_names = raw_db['table_names_original']
 
             for table_name in zip(table_names, original_table_names):
-                table = Table(name=table_name[0], original_name=table_name[1], columns=[])
+                table = Table(name=table_name[1], original_name=table_name[1], columns=[])
                 tables[table.name] = table
 
             column_names = raw_db['column_names_original']
@@ -29,33 +29,74 @@ class SpiderDataset:
             foreign_keys = raw_db['foreign_keys']
             primary_keys = raw_db['primary_keys']
 
-            for i, column in enumerate(zip(column_names, original_column_names, column_types)):
+            columns_by_index = []
 
-                parsed_column = Column(name=column[0][1], original_name=column[1][1], data_type=column[2])
-                if i in foreign_keys:
-                    parsed_column.foreign_key_of = ForeignKey(table=None, column=None)  # TODO parse
+            for i, column in enumerate(zip(column_names, original_column_names, column_types)):
+                parsed_column = Column(name=column[1][1], original_name=column[1][1], data_type=column[2])
+                columns_by_index.append(parsed_column)
                 if i in primary_keys:
                     parsed_column.is_primary_key = True
 
                 if column[0][0] == -1:
                     continue
-                table_index = column[0][0]
+                table_index = column[1][0]
 
-                tables[table_names[table_index].replace(' ', '_')].columns.append(parsed_column)
+                tables[original_table_names[table_index].replace(' ', '_')].columns.append(parsed_column)
+                parsed_column.table = tables[original_table_names[table_index].replace(' ', '_')]
+
+            for i, column in enumerate(zip(column_names, original_column_names, column_types)):
+                for fk_indexes in foreign_keys:
+                    for fk_index in fk_indexes:
+                        if fk_index == i:
+                            for k2 in fk_indexes:
+                                if k2 == i:
+                                    continue
+                                current_column = columns_by_index[i]
+                                current_column.foreign_key_of = ForeignKey(table=columns_by_index[k2].table, column=columns_by_index[k2])
 
             databases[db_id] = Database(name=db_id, tables=tables)
 
         return databases
 
-    def format_tables_short(self, db_id):
+    def format_tables_short(self, db_id, filter_by_tables=None, filter_by_columns=None):
         s = ''
         for table in self.table_metadata[db_id].tables.values():
+            if filter_by_tables and table.name not in filter_by_tables:
+                continue
+
             s += f'{table.name}'
             s += ' '
             s += '('
-            s += ', '.join([f"{c.name} {c.data_type}" for c in table.columns])
+            s += ', '.join([f"{c.name}" for c in table.columns if
+                            filter_by_columns is None or c.name in filter_by_columns])
             s += ')'
             s += '\n'
+        return s
+
+    def format_foreign_keys_short(self, db_id, filter_by_tables=None, filter_by_columns=None):
+        s = ''
+        for table in self.table_metadata[db_id].tables.values():
+            if filter_by_tables and table.name not in filter_by_tables:
+                continue
+
+            for column in table.columns:
+                if filter_by_columns is not None and column.name not in filter_by_columns:
+                    continue
+
+                if column.foreign_key_of:
+                    lhs = f"{column.table.name}.{column.name}"
+                    rhs = f"{column.foreign_key_of.table.name}.{column.foreign_key_of.column.name}"
+
+                    if filter_by_tables is not None and column.foreign_key_of.table.name not in filter_by_tables:
+                        continue
+
+                    if filter_by_columns is not None and column.foreign_key_of.column.name not in filter_by_columns:
+                        continue
+
+
+                    if rhs > lhs:
+                        s += f'{lhs} = {rhs}'
+                        s += '\n'
         return s
 
     @cached_property

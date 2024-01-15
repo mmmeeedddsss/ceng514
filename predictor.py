@@ -6,8 +6,9 @@ from tqdm import tqdm
 from utils import SimilarityCalculator
 from data_access import SpiderDataset
 from gpt import OpenAIWrapper
+from sqlite_executor import sqlite_executor
 from translation_helper import TranslationHelper
-
+from voting import vote_for_most_common_execution, vote_for_common_tables, vote_for_common_columns
 
 
 class Predictor:
@@ -27,34 +28,60 @@ class Predictor:
         if self.use_turkish:
             sampled_queries = TranslationHelper.translate_prompts_to_turkish(sampled_queries)
 
+        predicted_and_selected_queries = []
         predicted_queries = []
         for example in tqdm(sampled_queries):
+            # truth_query = example['query']
             db_id = example['db_id']
             question = example['question']
             """
             print(f"HERERE {question}")
             if self.use_turkish:
-                question = OpenAIWrapper.translate_to_english(question)
+                question = OpenAIWrapper.tdata_access.pyranslate_to_english(question)
                 print(question)
             exit
             """
 
+            all_table_info = self.dataset.format_tables_short(db_id)
+
+            related_tables_multi = OpenAIWrapper.filter_related_tables(db_id, all_table_info, question)
+            related_tables = vote_for_common_tables(related_tables_multi)
+
+            all_foreign_keys_of_related_tables = \
+                self.dataset.format_foreign_keys_short(db_id, filter_by_tables=related_tables)
+
+            related_columns_multi = \
+                OpenAIWrapper.filter_related_columns(db_id,
+                                                     self.dataset.format_tables_short(db_id,
+                                                                                      filter_by_tables=related_tables),
+                                                     all_foreign_keys_of_related_tables, question)
+
+            related_columns = vote_for_common_columns(related_columns_multi)
+
+            database_tables_to_feed = \
+                self.dataset.format_tables_short(db_id, filter_by_tables=related_tables,
+                                                 filter_by_columns=related_columns)
+            foreign_keys_to_feed = \
+                self.dataset.format_foreign_keys_short(db_id, filter_by_tables=related_tables,
+                                                       filter_by_columns=related_columns)
+
             similar_items = similarity_calc.sentence_vector(question, 8)
-            predicted_query = OpenAIWrapper.generate_sql_for_promt(
+
+            predicted_queries = OpenAIWrapper.generate_sql_for_prompt_c3_with_examples(
                 database_name=db_id,
-                database_tables=self.dataset.format_tables_short(db_id),
+                database_tables=database_tables_to_feed,
+                foreign_keys=foreign_keys_to_feed,
                 user_prompt=question,
-                similar_items=similar_items
+                similar_items=similar_items,
+                N=15
             )
 
-            # Remove multiple whitespaces and newlines
-            predicted_query = ' '.join(predicted_query.replace('\n', ' ').split())
-            predicted_queries.append(predicted_query)
+            voted_query = vote_for_most_common_execution(db_id, predicted_queries)
+            predicted_and_selected_queries.append(voted_query)
 
-        self.save_preds_for_eval(predicted_queries)
+        self.save_preds_for_eval(predicted_and_selected_queries)
 
-
-        return predicted_queries
+        return predicted_and_selected_queries
 
     def save_preds_for_eval(self, predicted_queries):
         with open('predicted_queries.sql', 'w') as f:
@@ -75,7 +102,6 @@ class Predictor:
                  pred='predicted_queries.sql',
                  db_dir='spider/dataset/database',
                  etype='all'):
-
 
         subprocess.run(["python", "spider/evaluator/evaluation.py",
                         "--gold", gold,

@@ -15,6 +15,7 @@ class Column:
         self.data_type = data_type
         self.is_primary_key = is_primary_key
         self.foreign_key_of = foreign_key_of
+        self.table: Table = None
 
 
 class Table:
