@@ -20,7 +20,9 @@ class SimilarityCalculator:
             similarities.append((util.pytorch_cos_sim(target_embedding, embedding), sentence, self.sampled_queries[i]['query']))
 
         similarities.sort(reverse=True)
-        return similarities[1:k + 1]
+        while similarities[0][0] == 1:
+            similarities.pop(0)
+        return similarities[:k]
 """
 
 

@@ -41,7 +41,7 @@ p.evaluate()
 """
 
 p = Predictor(use_turkish=False)
-p.predict(100)
+p.predict(3)
 print('*** evaluating for english ***')
 p.evaluate()
 

@@ -14,15 +14,15 @@ class Predictor:
     def __init__(self, use_turkish=False):
         self.dataset = SpiderDataset()
         self.use_turkish = use_turkish
+        self.similarity_calc = SimilarityCalculator(self.dataset.training_queries + self.dataset.dev_queries)
 
     def sample_dataset(self, num_samples=100):
-        sampled_queries = random.sample(self.dataset.training_queries, num_samples)
+        sampled_queries = random.sample(self.dataset.dev_queries, num_samples)
         self.save_truths_for_eval(sampled_queries)
         return sampled_queries
 
     def predict(self, num_samples=100):
         sampled_queries = self.sample_dataset(num_samples=num_samples)
-        similarity_calc = SimilarityCalculator(self.dataset.training_queries)
 
         if self.use_turkish:
             sampled_queries = TranslationHelper.translate_prompts_to_turkish(sampled_queries)
@@ -39,7 +39,7 @@ class Predictor:
             exit
             """
 
-            similar_items = similarity_calc.sentence_vector(question, 8)
+            similar_items = self.similarity_calc.sentence_vector(question, 8)
             predicted_query = OpenAIWrapper.generate_sql_for_promt(
                 database_name=db_id,
                 database_tables=self.dataset.format_tables_short(db_id),
@@ -52,7 +52,6 @@ class Predictor:
             predicted_queries.append(predicted_query)
 
         self.save_preds_for_eval(predicted_queries)
-
 
         return predicted_queries
 
