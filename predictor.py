@@ -21,6 +21,19 @@ class Predictor:
         self.save_truths_for_eval(sampled_queries)
         return sampled_queries
 
+    def user_prompt(self, user_question, db_id):
+        similar_items = self.similarity_calc.sentence_vector(user_question, 8)
+
+        predicted_query = OpenAIWrapper.generate_sql_for_promt(
+            database_name=db_id,
+            database_tables=self.dataset.format_tables_short(db_id),
+            user_prompt=user_question,
+            similar_items=similar_items
+        )
+        # Remove multiple whitespaces and newlines
+        return ' '.join(predicted_query.replace('\n', ' ').split())
+
+
     def predict(self, num_samples=100):
         sampled_queries = self.sample_dataset(num_samples=num_samples)
 
