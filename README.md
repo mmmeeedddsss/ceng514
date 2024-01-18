@@ -1,10 +1,15 @@
-# ceng514
-Data Mining
+# METU Ceng514
+_2023 Fall METU Ceng514 Data Mining project of Egement Berk Galatalı & Mert Tunç_
+
+The repository contains implementations of following two papers with a novel take on similar question selection
+- C3: Zero-shot Text-to-SQL with ChatGPT(https://arxiv.org/abs/2307.07306)
+- Text-to-SQL Empowered by Large Language Models: A Benchmark Evaluation(https://arxiv.org/abs/2308.15363)
 
 
-# To setup
+## To setup environment
 
-1. Create a folder named spider locally, and download the spider dataset inside.
+1. Create a folder named spider locally, and download the spider dataset inside. You can find the dataset from https://yale-lily.github.io/spider
+
 It should look like spider/dataset/tables.json
 2. Checkout evaluator next to the dataset folder with name evaluator
     ```
