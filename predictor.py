@@ -2,6 +2,7 @@ import json
 import random
 import subprocess
 from tqdm import tqdm
+from functools import lru_cache
 
 from utils import SimilarityCalculator
 from data_access import SpiderDataset
@@ -21,8 +22,12 @@ class Predictor:
         self.save_truths_for_eval(sampled_queries)
         return sampled_queries
 
+    @lru_cache
+    def find_similar_items(self, user_question):
+        return self.similarity_calc.sentence_vector(user_question, 8)
+
     def user_prompt(self, user_question, db_id):
-        similar_items = self.similarity_calc.sentence_vector(user_question, 8)
+        similar_items = self.find_similar_items(user_question)
 
         predicted_query = OpenAIWrapper.generate_sql_for_promt(
             database_name=db_id,
