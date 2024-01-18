@@ -40,8 +40,8 @@ print('*** evaluating for turkish ***')
 p.evaluate()
 """
 
-p = Predictor(use_turkish=False)
-p.predict(3)
+p = Predictor(use_turkish=True)
+p.predict(100)
 print('*** evaluating for english ***')
 p.evaluate()
 

@@ -23,21 +23,20 @@ class Predictor:
 
     def predict(self, num_samples=100):
         sampled_queries = self.sample_dataset(num_samples=num_samples)
+        original_questions = [e['question'] for e in sampled_queries]
 
         if self.use_turkish:
             sampled_queries = TranslationHelper.translate_prompts_to_turkish(sampled_queries)
+            turkish_questions = [e['question'] for e in sampled_queries]
+            sampled_queries = TranslationHelper.translate_prompts_to_english(sampled_queries)
+            translated_english_questions = [e['question'] for e in sampled_queries]
+            for x, y, z in zip(original_questions, turkish_questions, translated_english_questions):
+                print(x, y, z, sep=",")
 
         predicted_queries = []
         for example in tqdm(sampled_queries):
             db_id = example['db_id']
             question = example['question']
-            """
-            print(f"HERERE {question}")
-            if self.use_turkish:
-                question = OpenAIWrapper.translate_to_english(question)
-                print(question)
-            exit
-            """
 
             similar_items = self.similarity_calc.sentence_vector(question, 8)
             predicted_query = OpenAIWrapper.generate_sql_for_promt(
