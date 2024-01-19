@@ -33,17 +33,14 @@ print(OpenAIWrapper.generate_sql_for_promt(
 )
 """
 
-"""
-p = Predictor(use_turkish=True)
-p.predict(10)
-print('*** evaluating for turkish ***')
+p = Predictor(use_turkish=False)
+p.predict(20)
 p.evaluate()
-"""
 
+"""
 p = Predictor(use_turkish=False)
 
 user_question = "List the names of the books in ascending order"
-"""
 book_2
 List the names of the books in ascending order 
 
