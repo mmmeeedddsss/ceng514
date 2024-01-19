@@ -50,6 +50,15 @@ List the names of the books in ascending order
 cinema
 Select most rated 10 films in ascending order
 
+flight_2
+Which country does Airline \"JetBlue Airways\" belong to?
+SELECT Country FROM AIRLINES WHERE Airline  =  \"JetBlue Airways\"
+
+flight_2
+How many flights depart from City 'Aberdeen' and have destination City 'Ashley'?
+SELECT count(*) FROM FLIGHTS AS T1 JOIN AIRPORTS AS T2 ON T1.DestAirport  =  T2.AirportCode JOIN AIRPORTS AS T3 ON T1.SourceAirport  =  T3.AirportCode WHERE T2.City  =  \"Ashley\" AND T3.City  =  \"Aberdeenj"
+
+
 """
 print(p.user_prompt(user_question, "book_2"))
 
