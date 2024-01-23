@@ -1,71 +1,20 @@
-import json
-
-from data_access import SpiderDataset
+import os
 import random
 
 from predictor import Predictor
 
 random.seed(41)
 
-"""
-queries = Predictor().sample_dataset(10)
-print(OpenAIWrapper.translate_to_turkish(user_promt_list=[q['question'] for q in queries]))
-"""
+
+start_from = int(os.environ.get("START_FROM_ROW"))
+step_size = int(os.environ.get("STEP_SIZE"))
+
+p = Predictor(output_file_path='predicted_queries.sql')
+p.predict(num_samples=-1, start_from=start_from, step_size=step_size)
 
 
-"""
+tables_json_path = os.environ.get("TABLES_JSON_PATH")
+gold_sql_path = os.environ.get("GOLD_SQL_PATH")
+db_path = os.environ.get("DB_PATH")  # spider/dataset/database
 
-queries = Predictor().sample_dataset(10)
-user_promt_list = [(q['query'], q['question']) for q in queries]
-for query, question in user_promt_list[:10]:
-    print(f"Question: \n {question.strip()}")
-    print()
-    print(f"Query: \n {query.strip()}")
-exit()
-"""
-
-"""
-dataset = SpiderDataset()
-print(OpenAIWrapper.generate_sql_for_promt(
-    database_name='concert_singer',
-    database_tables=dataset.format_tables_short('concert_singer'),
-    user_prompt='Fransız şarkıcıların ortalama, maksimum ve mimimum yaşları nelerdir?')
-)
-"""
-
-p = Predictor(use_turkish=False)
-p.predict(20)
-p.evaluate()
-
-"""
-p = Predictor(use_turkish=False)
-
-user_question = "List the names of the books in ascending order"
-book_2
-List the names of the books in ascending order 
-
-cinema
-Select most rated 10 films in ascending order
-
-flight_2
-Which country does Airline \"JetBlue Airways\" belong to?
-SELECT Country FROM AIRLINES WHERE Airline  =  \"JetBlue Airways\"
-
-flight_2
-How many flights depart from City 'Aberdeen' and have destination City 'Ashley'?
-SELECT count(*) FROM FLIGHTS AS T1 JOIN AIRPORTS AS T2 ON T1.DestAirport  =  T2.AirportCode JOIN AIRPORTS AS T3 ON T1.SourceAirport  =  T3.AirportCode WHERE T2.City  =  \"Ashley\" AND T3.City  =  \"Aberdeenj"
-
-
-"""
-print(p.user_prompt(user_question, "book_2"))
-
-"""
-
-python spider/evaluator/evaluation.py \
-    --gold sampled_truth_sqls.sql \
-    --pred predicted_queries.sql \
-    --db spider/dataset/database \
-    --table spider/dataset/tables.json \
-    --etype all
-    
-"""
+p.evaluate(table=tables_json_path, gold=gold_sql_path, db_dir=db_path)

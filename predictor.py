@@ -7,14 +7,12 @@ from functools import lru_cache
 from utils import SimilarityCalculator
 from data_access import SpiderDataset
 from gpt import OpenAIWrapper
-from translation_helper import TranslationHelper
-
 
 
 class Predictor:
-    def __init__(self, use_turkish=False):
+    def __init__(self, output_file_path='predicted_queries.sql'):
         self.dataset = SpiderDataset()
-        self.use_turkish = use_turkish
+        self.output_file_path = output_file_path
         self.similarity_calc = SimilarityCalculator(self.dataset.training_queries + self.dataset.dev_queries)
 
     def sample_dataset(self, num_samples=100):
@@ -38,24 +36,19 @@ class Predictor:
         # Remove multiple whitespaces and newlines
         return ' '.join(predicted_query.replace('\n', ' ').split())
 
-
-    def predict(self, num_samples=100):
-        sampled_queries = self.sample_dataset(num_samples=num_samples)
-
-        if self.use_turkish:
-            sampled_queries = TranslationHelper.translate_prompts_to_turkish(sampled_queries)
+    def predict(self, num_samples=0, start_from=0, step_size=100):
+        print('Predicting for num_samples:', num_samples, 'start_from:', start_from, 'step_size:', step_size)
+        if num_samples == -1:
+            sampled_queries = self.dataset.dev_queries
+            sampled_queries = sampled_queries[start_from:start_from + step_size]
+            self.save_truths_for_eval(sampled_queries)
+        else:
+            sampled_queries = self.sample_dataset(num_samples=num_samples)
 
         predicted_queries = []
         for example in tqdm(sampled_queries):
             db_id = example['db_id']
             question = example['question']
-            """
-            print(f"HERERE {question}")
-            if self.use_turkish:
-                question = OpenAIWrapper.translate_to_english(question)
-                print(question)
-            exit
-            """
 
             similar_items = self.similarity_calc.sentence_vector(question, 8)
             predicted_query = OpenAIWrapper.generate_sql_for_promt(
@@ -69,12 +62,18 @@ class Predictor:
             predicted_query = ' '.join(predicted_query.replace('\n', ' ').split())
             predicted_queries.append(predicted_query)
 
-        self.save_preds_for_eval(predicted_queries)
+        self.save_preds_for_eval(predicted_queries, start_from, step_size)
 
         return predicted_queries
 
-    def save_preds_for_eval(self, predicted_queries):
-        with open('predicted_queries.sql', 'w') as f:
+    def save_preds_for_eval(self, predicted_queries, start_from, step_size):
+        self.output_file_path = f'predicted_queries_{start_from}_{start_from + step_size}.sql'
+
+        with open(self.output_file_path, 'w') as f:
+            for line in predicted_queries:
+                f.write(line + '\n')
+
+        with open('predicted_queries.sql', 'a+') as f:
             for line in predicted_queries:
                 f.write(line + '\n')
 
@@ -89,10 +88,10 @@ class Predictor:
 
     def evaluate(self, table='spider/dataset/tables.json',
                  gold='sampled_truth_sqls.sql',
-                 pred='predicted_queries.sql',
                  db_dir='spider/dataset/database',
                  etype='all'):
 
+        pred = self.output_file_path
 
         subprocess.run(["python", "spider/evaluator/evaluation.py",
                         "--gold", gold,

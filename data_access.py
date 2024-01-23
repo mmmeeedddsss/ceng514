@@ -1,13 +1,16 @@
 import json
+import os
 from functools import cached_property
 
 from data_model import *
 
 
+
 class SpiderDataset:
     @cached_property
     def table_metadata(self):
-        with open('spider/dataset/tables.json') as f:
+        tables_json_path = os.environ.get('TABLES_JSON_PATH')  # 'spider/dataset/tables.json'
+        with open(tables_json_path) as f:
             table_metadata = json.load(f)
 
         databases = {}
@@ -60,12 +63,14 @@ class SpiderDataset:
 
     @cached_property
     def training_queries(self):
-        with open('spider/dataset/train_spider.json') as f:
+        train_spider_json_path = os.environ.get('TRAIN_SPIDER_JSON_PATH')  # 'spider/dataset/train_spider.json'
+        with open(train_spider_json_path) as f:
             queries = json.load(f)
         return queries  # has question, db_id, query
 
     @cached_property
     def dev_queries(self):
-        with open('spider/dataset/dev.json') as f:
+        dev_json_path = os.environ.get('DEV_JSON_PATH')  # 'spider/dataset/dev.json'
+        with open(dev_json_path) as f:
             queries = json.load(f)
         return queries  # has question, db_id, query
