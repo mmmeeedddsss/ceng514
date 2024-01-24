@@ -21,6 +21,6 @@ do
 done
 
 
-python spider/evaluator/evaluation.py --gold spider/dataset/dev_gold.sql --pred predicted_queries.sql --db $DB_PATH --table $TABLES_JSON_PATH --etype all
+python spider/test-suite-sql-eval/evaluation.py --gold spider/dataset/dev_gold.sql --pred predicted_queries.sql --db $DB_PATH --table $TABLES_JSON_PATH --etype all
 
 

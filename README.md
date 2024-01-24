@@ -15,9 +15,9 @@ The structure should be like `spider/dataset/tables.json`
 2. Checkout evaluator next to the dataset folder with name evaluator
 ```
 cd spider
-git clone git@github.com:taoyds/spider.git
+git clone git@github.com:taoyds/test-suite-sql-eval.git
 ```
-It should look like `spider/evaluator/evaluation.py`
+It should look like `spider/test-suite-sql-eval/evaluation.py`
 
 3. In your first run, evaluator will complain about a missing file and will tell what to do. Do it xd
 
@@ -52,7 +52,7 @@ See `results_for_dev` file for whole of the dump.
                      easy                 medium               hard                 extra                all                 
 count                248                  446                  174                  166                  1034                
 =====================   EXECUTION ACCURACY     =====================
-execution            0.956                0.899                0.891                0.801                0.896               
+execution            0.960                0.946                0.897                0.813                0.920               
 
 ====================== EXACT MATCHING ACCURACY =====================
 exact match          0.952                0.863                0.874                0.699                0.860               
