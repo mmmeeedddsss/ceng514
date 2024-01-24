@@ -38,7 +38,7 @@ sh run_script.sh
   ```PYTHON
   from predictor import Predictor
   
-  p = Predictor(use_turkish=False)
+  p = Predictor()
   p.predict(num_samples=1000)
   p.evaluate()
   ```
